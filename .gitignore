@@ -1,0 +1,8 @@
+# local-only spec memo (contains original source wording; not published)
+spec_prompt.md
+
+# OS / editor cruft
+*.log
+.DS_Store
+Thumbs.db
+.vscode/

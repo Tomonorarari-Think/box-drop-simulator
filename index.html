@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="app_title">箱ドロップ保管シミュレーター</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1 class="app-title" data-i18n="app_title">箱ドロップ保管シミュレーター</h1>
+    <div class="header-controls">
+      <label class="control-group">
+        <span class="control-label" data-i18n="language">言語</span>
+        <select id="lang-select" class="select">
+          <option value="ja">日本語</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <button id="theme-toggle" class="theme-toggle" type="button" title="">
+        <span class="theme-icon" aria-hidden="true">🌙</span>
+        <span id="theme-label" data-i18n="theme_dark">ダーク</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <!-- ============ Settings panel ============ -->
+    <section class="panel settings-panel">
+      <h2 class="panel-title" data-i18n="basic_params">基本パラメーター</h2>
+
+      <div class="field">
+        <label class="field-label" for="stageInterval" data-i18n="stage_interval">ステージクリア間隔</label>
+        <div class="field-input">
+          <input type="number" id="stageInterval" min="0" step="1" class="input" />
+          <span class="unit" data-i18n="seconds">秒</span>
+          <button class="help" type="button" data-tip="tip_stage_interval" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field field-box-white">
+        <label class="field-label" for="whiteCooldown">
+          <span data-i18n="white_box">白箱</span> <span data-i18n="cooldown">クールタイム</span>
+        </label>
+        <div class="field-input">
+          <input type="number" id="whiteCooldown" min="0" step="1" class="input" />
+          <span class="unit" data-i18n="seconds">秒</span>
+          <button class="help" type="button" data-tip="tip_white_cooldown" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field field-box-white">
+        <label class="field-label" for="whiteOpenTime">
+          <span data-i18n="white_box">白箱</span> <span data-i18n="open_time">開封時間</span>
+        </label>
+        <div class="field-input">
+          <input type="number" id="whiteOpenTime" min="0" step="1" class="input" />
+          <span class="unit" data-i18n="seconds">秒</span>
+          <button class="help" type="button" data-tip="tip_white_open" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field field-box-blue">
+        <label class="field-label" for="blueCooldown">
+          <span data-i18n="blue_box">青箱</span> <span data-i18n="cooldown">クールタイム</span>
+        </label>
+        <div class="field-input">
+          <input type="number" id="blueCooldown" min="0" step="1" class="input" />
+          <span class="unit" data-i18n="seconds">秒</span>
+          <button class="help" type="button" data-tip="tip_blue_cooldown" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field field-box-blue">
+        <label class="field-label" for="blueOpenTime">
+          <span data-i18n="blue_box">青箱</span> <span data-i18n="open_time">開封時間</span>
+        </label>
+        <div class="field-input">
+          <input type="number" id="blueOpenTime" min="0" step="1" class="input" />
+          <span class="unit" data-i18n="seconds">秒</span>
+          <button class="help" type="button" data-tip="tip_blue_open" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="inventoryLimit" data-i18n="inventory_limit">インベントリ上限</label>
+        <div class="field-input">
+          <input type="number" id="inventoryLimit" min="0" step="1" class="input" />
+          <span class="unit" data-i18n="unit_items">個</span>
+          <button class="help" type="button" data-tip="tip_inventory_limit" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field field-box-white">
+        <label class="field-label" for="whiteStorageLimit">
+          <span data-i18n="white_box">白箱</span> <span data-i18n="storage_limit">保管上限</span>
+        </label>
+        <div class="field-input">
+          <input type="number" id="whiteStorageLimit" min="0" step="1" class="input" />
+          <span class="unit" data-i18n="unit_items">個</span>
+          <button class="help" type="button" data-tip="tip_white_storage" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field field-box-blue">
+        <label class="field-label" for="blueStorageLimit">
+          <span data-i18n="blue_box">青箱</span> <span data-i18n="storage_limit">保管上限</span>
+        </label>
+        <div class="field-input">
+          <input type="number" id="blueStorageLimit" min="0" step="1" class="input" />
+          <span class="unit" data-i18n="unit_items">個</span>
+          <button class="help" type="button" data-tip="tip_blue_storage" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <h2 class="panel-title" data-i18n="settings_rules">ルール設定</h2>
+
+      <div class="field">
+        <label class="field-label" for="cooldownResetMode" data-i18n="cd_reset_mode">クールダウンリセット方式</label>
+        <div class="field-input">
+          <select id="cooldownResetMode" class="select">
+            <option value="onDrop" data-i18n="cd_on_drop">ドロップ時リセット</option>
+            <option value="fixed" data-i18n="cd_fixed">固定間隔</option>
+          </select>
+          <button class="help" type="button" data-tip="tip_cd_reset_mode" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="simultaneousPriority" data-i18n="simultaneous_priority">同時ドロップ時の優先</label>
+        <div class="field-input">
+          <select id="simultaneousPriority" class="select">
+            <option value="white" data-i18n="white_first">白優先</option>
+            <option value="blue" data-i18n="blue_first">青優先</option>
+          </select>
+          <button class="help" type="button" data-tip="tip_simultaneous_priority" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="maxDropsPerClear" data-i18n="max_drops_per_clear">1クリアあたりの最大ドロップ数</label>
+        <div class="field-input">
+          <select id="maxDropsPerClear" class="select">
+            <option value="1" data-i18n="one_per_clear">1個</option>
+            <option value="2" data-i18n="two_per_clear">2個（同時ドロップ可）</option>
+          </select>
+          <button class="help" type="button" data-tip="tip_max_drops_per_clear" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="firstDropRule" data-i18n="first_drop_rule">初回ドロップの扱い</label>
+        <div class="field-input">
+          <select id="firstDropRule" class="select">
+            <option value="fullCd" data-i18n="full_cd_required">フルクールダウン必要</option>
+            <option value="instant" data-i18n="instant_first">即ドロップ可</option>
+          </select>
+          <button class="help" type="button" data-tip="tip_first_drop_rule" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="nonSelectedBehavior" data-i18n="non_selected_behavior">非選択側の扱い</label>
+        <div class="field-input">
+          <select id="nonSelectedBehavior" class="select">
+            <option value="wait" data-i18n="keep_waiting">待機のまま</option>
+            <option value="reset" data-i18n="reset_non_selected">クールダウンリセット</option>
+          </select>
+          <button class="help" type="button" data-tip="tip_non_selected_behavior" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="endCondition" data-i18n="end_condition">保管終了条件</label>
+        <div class="field-input">
+          <select id="endCondition" class="select">
+            <option value="either" data-i18n="either_limit">いずれか片方が上限到達</option>
+            <option value="both" data-i18n="both_limit">両方が上限到達</option>
+          </select>
+          <button class="help" type="button" data-tip="tip_end_condition" aria-label="?">?</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="calculate" class="btn btn-primary" type="button" data-i18n="calculate">計算する</button>
+        <button id="reset" class="btn btn-ghost" type="button" data-i18n="reset_defaults">デフォルトに戻す</button>
+      </div>
+    </section>
+
+    <!-- ============ Results panel ============ -->
+    <section class="panel results-panel">
+      <h2 class="panel-title" data-i18n="result_title">シミュレーション結果</h2>
+
+      <p id="result-placeholder" class="placeholder" data-i18n="result_placeholder">「計算する」を押すと結果が表示されます。</p>
+      <p id="result-error" class="error-msg" hidden></p>
+
+      <div id="result-body" class="result-body" hidden>
+        <div class="summary-grid">
+          <div class="card" id="card-inv">
+            <div class="card-label" data-i18n="inventory_filled">インベントリ満杯まで</div>
+            <div class="card-value" id="val-inv">-</div>
+          </div>
+          <div class="card" id="card-storage">
+            <div class="card-label" data-i18n="storage_time">箱保管の追加時間</div>
+            <div class="card-value" id="val-storage">-</div>
+          </div>
+          <div class="card" id="card-opening">
+            <div class="card-label" data-i18n="opening_total">開封合計時間</div>
+            <div class="card-value" id="val-opening">-</div>
+          </div>
+          <div class="card card-total" id="card-total">
+            <div class="card-label" data-i18n="total_time">合計時間</div>
+            <div class="card-value" id="val-total">-</div>
+          </div>
+          <div class="card card-box-white" id="card-white">
+            <div class="card-label">
+              <span data-i18n="white_box">白箱</span> <span data-i18n="stored_count">保管数</span>
+            </div>
+            <div class="card-value" id="val-white">-</div>
+            <div class="card-sub" id="sub-white"></div>
+          </div>
+          <div class="card card-box-blue" id="card-blue">
+            <div class="card-label">
+              <span data-i18n="blue_box">青箱</span> <span data-i18n="stored_count">保管数</span>
+            </div>
+            <div class="card-value" id="val-blue">-</div>
+            <div class="card-sub" id="sub-blue"></div>
+          </div>
+          <div class="card" id="card-first">
+            <div class="card-label" data-i18n="reached_limit_first">先に上限到達</div>
+            <div class="card-value" id="val-first">-</div>
+          </div>
+        </div>
+
+        <div class="timeline-block">
+          <h3 class="block-title" data-i18n="timeline_title">進捗フェーズ</h3>
+          <div class="timeline" id="timeline"></div>
+        </div>
+
+        <div class="chart-block">
+          <h3 class="block-title" data-i18n="chart_storage_title">保管数の推移</h3>
+          <div id="chart" class="chart-container"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating tooltip element -->
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/simulation.js"></script>
+  <script src="js/formatters.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
