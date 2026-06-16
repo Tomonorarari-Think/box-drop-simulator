@@ -19,7 +19,7 @@ Bilingual (Japanese / English), light & dark themes, a **zero-dependency** stati
   - First drop rule (full cooldown required / instant drop)
   - Non-selected box behavior (keep waiting / reset cooldown)
   - End condition (either reaches limit / both reach limit)
-- **Result summary**: time to fill inventory / additional storage time / total opening time / total time / white & blue stored counts / which box reached its limit first (highlighted)
+- **Result summary**: time to fill inventory / additional storage time / opening fill delay / total time / white & blue stored counts / which box reached its limit first (highlighted)
 - **Time format**: `Xhr Ymin Zsec (NN,NNN sec)`
 - **Visualization**: progress-phase timeline + an SVG line chart of stored counts over time
 - **Language switch**: instant, remembered across launches (localStorage)
@@ -28,11 +28,12 @@ Bilingual (Japanese / English), light & dark themes, a **zero-dependency** stati
 
 ### How opening time is modeled
 
-Opening time is added **only for boxes that enter the inventory** (the ones that are auto-opened).
-Stored boxes are never opened, so they add nothing (stored = unopened).
+White and blue have **independent, parallel opening lines**, and opening runs **concurrently** with stage clearing.
+Stored boxes are never opened, so opening time only concerns boxes that enter the inventory.
 
-- All opening overhead occurs during the "inventory fill" phase.
-- Increasing opening time therefore extends the "time to fill" and "total time", but leaves the post-fill "additional storage time" unchanged.
+- Because opening overlaps with the wait between drops, **as long as a colour's opening time is shorter than its drop interval (cooldown), the opener keeps up and the total time is unaffected.**
+- Only when opening can't keep up with drops does the moment the inventory actually becomes full slip later (that slip is reported as the **"opening fill delay"**).
+- Storage (overflow after the inventory is full) follows the stage clock, so the **total time is not affected by opening time**.
 - Set opening time to `0` for the original behavior.
 
 ---

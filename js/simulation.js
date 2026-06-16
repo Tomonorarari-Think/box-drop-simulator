@@ -68,11 +68,14 @@
       blueStored: 0,
       whiteOpened: 0,
       blueOpened: 0,
-      // Cumulative wall-clock overhead spent opening boxes. Opening only
-      // happens for boxes that enter inventory (stored boxes stay unopened),
-      // so this is fully accrued by the time inventory fills.
-      openingAccum: 0,
-      invFilledAt: null,
+      // Each colour has its own opening line, running in parallel and
+      // concurrently with stage clearing. A box only adds delay when its
+      // colour's opener cannot keep up with that colour's drop rate.
+      whiteOpenerFree: 0, // time the white opener is next free
+      blueOpenerFree: 0, // time the blue opener is next free
+      maxInvOpenFinish: 0, // latest moment any inventory-bound box finishes opening
+      invFilledClock: null, // stage-clock time the last inventory slot is taken
+      invFilledAt: null, // real time inventory is actually full of opened items
       whiteDoneAt: null,
       blueDoneAt: null,
       nextWhite: 0,
@@ -167,51 +170,64 @@
       for (var i = 0; i < dropQueue.length; i++) {
         var box = dropQueue[i];
         if (state.inv < invMax) {
+          // Destined for inventory: the box auto-opens on its colour's FIFO
+          // line. Opening runs concurrently with stage clearing, so it only
+          // delays when the contents are *credited* (openFinish) - it never
+          // stops the stage clock. A slot is reserved now (inv++), so once all
+          // slots are reserved, later drops overflow to storage.
           state.inv++;
-          // Opening the box consumes time before its contents land in inventory.
-          state.openingAccum += box === 'white' ? whiteOpen : blueOpen;
-          if (box === 'white') state.whiteOpened++;
-          else state.blueOpened++;
+          var openTime = box === 'white' ? whiteOpen : blueOpen;
+          var openerFree = box === 'white' ? state.whiteOpenerFree : state.blueOpenerFree;
+          var openFinish = Math.max(t, openerFree) + openTime;
+          if (box === 'white') {
+            state.whiteOpenerFree = openFinish;
+            state.whiteOpened++;
+          } else {
+            state.blueOpenerFree = openFinish;
+            state.blueOpened++;
+          }
+          if (openFinish > state.maxInvOpenFinish) state.maxInvOpenFinish = openFinish;
           updateCooldown(box, t);
-          var rtInv = t + state.openingAccum;
-          drops.push({ t: rtInv, box: box, kind: 'inv' });
-          if (state.inv >= invMax && state.invFilledAt === null) {
-            state.invFilledAt = rtInv;
+          drops.push({ t: t, box: box, kind: 'inv' });
+          if (state.inv >= invMax && state.invFilledClock === null) {
+            state.invFilledClock = t; // last slot reserved (stage clock)
+            state.invFilledAt = state.maxInvOpenFinish; // inventory actually full of items
           }
         } else {
-          // Stored (unopened) boxes add no opening overhead.
+          // Stored (unopened) boxes add no opening time and use the stage clock.
           if (box === 'white') {
             state.whiteStored++;
             if (state.whiteStored >= whiteMax && state.whiteDoneAt === null) {
-              state.whiteDoneAt = t + state.openingAccum;
+              state.whiteDoneAt = t;
             }
           } else {
             state.blueStored++;
             if (state.blueStored >= blueMax && state.blueDoneAt === null) {
-              state.blueDoneAt = t + state.openingAccum;
+              state.blueDoneAt = t;
             }
           }
           updateCooldown(box, t);
-          drops.push({ t: t + state.openingAccum, box: box, kind: 'store' });
+          drops.push({ t: t, box: box, kind: 'store' });
         }
         events.push({
-          t: t + state.openingAccum,
+          t: t,
           inv: state.inv,
           whiteStored: state.whiteStored,
           blueStored: state.blueStored
         });
       }
 
-      // End condition check. Reported time = stage clock + opening overhead.
+      // End condition check. Storage runs on the stage clock (stored boxes are
+      // never opened), so opening time does not move the completion time.
       if (endCondition === 'either') {
         if (state.whiteDoneAt !== null || state.blueDoneAt !== null) {
           done = true;
-          doneAt = t + state.openingAccum;
+          doneAt = t;
         }
       } else {
         if (state.whiteDoneAt !== null && state.blueDoneAt !== null) {
           done = true;
-          doneAt = t + state.openingAccum;
+          doneAt = t;
         }
       }
 
@@ -230,9 +246,19 @@
       firstReached = 'blue';
     }
 
+    // Additional storage time = from inventory actually full to completion.
+    // Clamped at 0 for the pathological case where opening is so slow that
+    // inventory finishes filling after the storage cap is already reached.
     var storageTime = null;
     if (doneAt !== null && state.invFilledAt !== null) {
-      storageTime = doneAt - state.invFilledAt;
+      storageTime = Math.max(0, doneAt - state.invFilledAt);
+    }
+
+    // How much opening pushed inventory-full back vs the pure stage clock.
+    // ~0 (or one final open) when each opener keeps up with its drop rate.
+    var openingDelay = null;
+    if (state.invFilledAt !== null && state.invFilledClock !== null) {
+      openingDelay = state.invFilledAt - state.invFilledClock;
     }
 
     return {
@@ -241,8 +267,9 @@
       doneAt: doneAt,
       totalStages: stage,
       invFilledAt: state.invFilledAt,
+      invFilledClock: state.invFilledClock,
       storageTime: storageTime,
-      openingTime: state.openingAccum,
+      openingDelay: openingDelay,
       whiteOpened: state.whiteOpened,
       blueOpened: state.blueOpened,
       whiteStored: state.whiteStored,

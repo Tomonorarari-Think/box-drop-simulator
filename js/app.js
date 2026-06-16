@@ -130,7 +130,7 @@
 
     $('val-inv').textContent = fmt.durationWithSeconds(result.invFilledAt);
     $('val-storage').textContent = fmt.durationWithSeconds(result.storageTime);
-    $('val-opening').textContent = fmt.durationWithSeconds(result.openingTime);
+    $('val-opening').textContent = fmt.durationWithSeconds(result.openingDelay);
     $('val-total').textContent = fmt.durationWithSeconds(result.doneAt);
 
     $('val-white').textContent = fmt.withCommas(result.whiteStored) + ' ' + t('unit_items');
