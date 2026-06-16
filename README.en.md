@@ -28,12 +28,14 @@ Bilingual (Japanese / English), light & dark themes, a **zero-dependency** stati
 
 ### How opening time is modeled
 
-White and blue have **independent, parallel opening lines**, and opening runs **concurrently** with stage clearing.
-Stored boxes are never opened, so opening time only concerns boxes that enter the inventory.
+Each box follows: **drop → storage buffer → auto-opened in order → inventory.**
+White and blue have **independent, parallel opening lines**; opened loot goes into the shared inventory (capacity = inventory limit).
+Once the inventory is full, opening stops and further drops pile up in storage.
+The "stored count" is the number of boxes **dropped but not yet opened**, and the run ends when it reaches the cap (white 15 / blue 10).
 
-- Because opening overlaps with the wait between drops, **as long as a colour's opening time is shorter than its drop interval (cooldown), the opener keeps up and the total time is unaffected.**
-- Only when opening can't keep up with drops does the moment the inventory actually becomes full slip later (that slip is reported as the **"opening fill delay"**).
-- Storage (overflow after the inventory is full) follows the stage clock, so the **total time is not affected by opening time**.
+- **As long as each colour's opener keeps up with its drop interval (cooldown), the total time is barely affected** (inventory-full just slips by roughly one final open).
+- If opening can't keep up, the storage buffer fills faster and the outcome changes (storage may even hit its cap before the inventory is full).
+- "**Opening fill delay**" is how much later the inventory becomes full because of opening, versus an instant-open ideal.
 - Set opening time to `0` for the original behavior.
 
 ---
